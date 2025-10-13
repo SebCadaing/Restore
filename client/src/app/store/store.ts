@@ -5,6 +5,7 @@ import { catalogAPI } from "../../features/catalog/catalogAPI";
 import { uiSlice } from "../layout/uiSlice";
 import { errorApi } from "../../features/about/errorApi";
 import { basketApi } from "../../features/basket/basketApi";
+import { catalogSlice } from "../../features/catalog/catalogSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     [basketApi.reducerPath]: basketApi.reducer,
     counter: counterSlice.reducer,
     ui: uiSlice.reducer,
+    catalog: catalogSlice.reducer,
   },
   middleware: (getDefaultMiddleWare) => getDefaultMiddleWare().concat(catalogAPI.middleware, errorApi.middleware, basketApi.middleware),
 });
