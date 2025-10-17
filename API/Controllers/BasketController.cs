@@ -18,7 +18,7 @@ public class BasketController(StoreContext context) : BaseApiController
         return basket.ToDto();
     }
     [HttpPost]
-    public async Task<ActionResult<BasketDTO>> AddItemTobasket(int productId, int quantity)
+    public async Task<ActionResult<BasketDTO>> AddItemToBasket(int productId, int quantity)
     {
         //get basket
         var basket = await RetrieveBasket();
