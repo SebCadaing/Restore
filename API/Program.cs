@@ -4,8 +4,11 @@ using API.Middleware;
 using API.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 
@@ -24,6 +27,7 @@ builder.Services.AddIdentityApiEndpoints<User>(opt =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<StoreContext>();
 
+StripeConfiguration.ApiKey = builder.Configuration["StripeSettings:SecretKey"];
 
 var app = builder.Build();
 
