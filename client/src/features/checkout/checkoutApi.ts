@@ -19,7 +19,7 @@ export const checkoutApi = createApi({
           const { data } = await queryFulfilled;
           dispatch(
             basketApi.util.updateQueryData("fetchBasket", undefined, (draft) => {
-              draft.clientSecet = data.clientSecet;
+              draft.clientSecret = data.clientSecret;
             })
           );
         } catch (error) {
