@@ -8,6 +8,7 @@ import { basketApi } from "../../features/basket/basketApi";
 import { catalogSlice } from "../../features/catalog/catalogSlice";
 import { accountApi } from "../../features/account/accountApi";
 import { checkoutApi } from "../../features/checkout/checkoutApi";
+import { orderApi } from "../../features/orders/orderApi";
 
 export const store = configureStore({
   reducer: {
@@ -16,12 +17,20 @@ export const store = configureStore({
     [basketApi.reducerPath]: basketApi.reducer,
     [accountApi.reducerPath]: accountApi.reducer,
     [checkoutApi.reducerPath]: checkoutApi.reducer,
+    [orderApi.reducerPath]: orderApi.reducer,
     counter: counterSlice.reducer,
     ui: uiSlice.reducer,
     catalog: catalogSlice.reducer,
   },
   middleware: (getDefaultMiddleWare) =>
-    getDefaultMiddleWare().concat(catalogAPI.middleware, errorApi.middleware, basketApi.middleware, accountApi.middleware, checkoutApi.middleware),
+    getDefaultMiddleWare().concat(
+      catalogAPI.middleware,
+      errorApi.middleware,
+      basketApi.middleware,
+      orderApi.middleware,
+      accountApi.middleware,
+      checkoutApi.middleware
+    ),
 });
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
