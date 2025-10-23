@@ -34,8 +34,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+
 
 app.UseCors(opt =>
 {
@@ -51,6 +50,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGroup("/api").MapIdentityApi<User>(); //api/login
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapFallbackToController("Index", "Fallback");
 
 await DbInitializer.InitDb(app);
