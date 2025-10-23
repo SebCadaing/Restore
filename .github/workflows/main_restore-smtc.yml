@@ -26,6 +26,7 @@ jobs:
       - name: Install deps and build client app
         env:
           VITE_STRIPE_PK: ${{ secrets.VITE_STRIPE_PK }}
+          VITE_API_URL: /api
         run: |
           cd client
           npm install
