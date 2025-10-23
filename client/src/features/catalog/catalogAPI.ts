@@ -12,7 +12,7 @@ export const catalogAPI = createApi({
     fetchProducts: builder.query<{ items: Product[]; pagination: Pagination }, ProductParams>({
       query: (productParams) => {
         return {
-          url: "products",
+          url: "/products",
           params: filterEmptyValues(productParams),
         };
       },
