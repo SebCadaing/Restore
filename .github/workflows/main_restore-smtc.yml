@@ -24,16 +24,10 @@ jobs:
           node-version: "20"
 
       - name: Install deps and build client app
-        env:
-          VITE_STRIPE_PK: ${{ secrets.VITE_STRIPE_PK }}
-          VITE_API_URL: /api
         run: |
           cd client
           npm install
           npm run build
-
-      - name: Verify React build output
-        run: dir API\wwwroot
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4

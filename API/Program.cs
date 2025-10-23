@@ -34,26 +34,19 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();
 
-
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseCors(opt =>
 {
-    opt.AllowAnyHeader()
-       .AllowAnyMethod()
-       .AllowCredentials()
-       .WithOrigins("https://localhost:3000", "https://restore-smtc.azurewebsites.net");
+    opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("https://localhost:3000");
 });
-
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGroup("/api").MapIdentityApi<User>(); //api/login
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
+app.MapGroup("api").MapIdentityApi<User>(); //api/login
 app.MapFallbackToController("Index", "Fallback");
 
 await DbInitializer.InitDb(app);
