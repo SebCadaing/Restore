@@ -33,7 +33,10 @@ jobs:
 
       - name: Ensure client build copied to API/wwwroot
         run: |
-          mkdir API\wwwroot 2>$null
+          echo "Copying client build output to API/wwwroot..."
+          # Create the directory if it doesn't exist, or ignore if it exists
+          New-Item -ItemType Directory -Path API\wwwroot -Force
+          # Copy the React build files
           xcopy client\dist\* API\wwwroot\ /E /I /Y
 
       - name: Set up .NET Core
