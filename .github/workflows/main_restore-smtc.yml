@@ -31,13 +31,8 @@ jobs:
           npm install
           npm run build
 
-      - name: Ensure client build copied to API/wwwroot
-        run: |
-          echo "Copying client build output to API/wwwroot..."
-          # Create the directory if it doesn't exist, or ignore if it exists
-          New-Item -ItemType Directory -Path API\wwwroot -Force
-          # Copy the React build files
-          xcopy client\dist\* API\wwwroot\ /E /I /Y
+      - name: Verify React build output
+        run: dir API\wwwroot
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
