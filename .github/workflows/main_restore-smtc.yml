@@ -24,6 +24,8 @@ jobs:
           node-version: "20"
 
       - name: Install deps and build client app
+        env:
+          VITE_STRIPE_PK: ${{ secrets.VITE_STRIPE_PK }}
         run: |
           cd client
           npm install
