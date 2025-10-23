@@ -39,8 +39,12 @@ app.UseStaticFiles();
 
 app.UseCors(opt =>
 {
-    opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("https://localhost:3000");
+    opt.AllowAnyHeader()
+       .AllowAnyMethod()
+       .AllowCredentials()
+       .WithOrigins("https://localhost:3000", "https://restore-smtc.azurewebsites.net");
 });
+
 
 app.UseAuthentication();
 app.UseAuthorization();
