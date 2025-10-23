@@ -33,9 +33,8 @@ jobs:
 
       - name: Ensure client build copied to API/wwwroot
         run: |
-          echo "Copying client build output to API/wwwroot..."
-          mkdir -p API/wwwroot
-          xcopy client\\dist\\* API\\wwwroot\\ /E /I /Y
+          mkdir API\wwwroot 2>$null
+          xcopy client\dist\* API\wwwroot\ /E /I /Y
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
