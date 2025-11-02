@@ -4,6 +4,7 @@ export type Basket = {
   basketId: string;
   items: Item[];
   clientSecret?: string;
+  coupon: Coupon | null;
 };
 
 export class Item {
@@ -24,3 +25,11 @@ export class Item {
   brand: string;
   quantity: number;
 }
+
+export type Coupon = {
+  name: string;
+  amountOff?: number;
+  percentOff?: number;
+  promotionCode: string;
+  couponId: string;
+};
