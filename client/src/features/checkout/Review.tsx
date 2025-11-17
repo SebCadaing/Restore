@@ -1,66 +1,84 @@
-import { Box, Divider, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
+// Review.tsx
+import { Box, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
 import { currencyFormat } from "../../lib/util";
-import type { ConfirmationToken } from "@stripe/stripe-js";
-import { useBasket } from "../../lib/hooks/useBasket";
+import type { Basket, Item } from "../../app/models/basket";
+import type { ShippingAddress, PaymentSummary, Order } from "../../app/models/Order";
 
-type Props = {
-  confirmationToken: ConfirmationToken | null;
+type ReviewProps = {
+  basket?: Basket | null;
+  shippingAddress?: ShippingAddress | null;
+  paymentSummary?: PaymentSummary | null;
+  order?: Order;
+  title?: string;
 };
 
-export default function Review({ confirmationToken }: Props) {
-  const { basket } = useBasket();
+// Normalize backend order items to Item[]
+function mapOrderToItems(order: Order): Item[] {
+  return order.orderItems.map((oi) => ({
+    productId: oi.productId,
+    name: oi.name,
+    type: "",
+    price: oi.price,
+    pictureURL: oi.pictureUrl,
+    brand: "",
+    quantity: oi.quantity,
+  }));
+}
 
-  const addressString = () => {
-    if (!confirmationToken?.shipping) return "";
-    const { name, address } = confirmationToken.shipping;
-    return `${name}, ${address?.line1}, ${address?.city}, ${address?.state}, ${address?.postal_code}, ${address?.country}`;
-  };
+export default function Review({ basket, shippingAddress, paymentSummary, order, title = "Billing and delivery information" }: ReviewProps) {
+  const items: Item[] = order ? mapOrderToItems(order) : basket?.items ?? [];
+  const address = shippingAddress ?? order?.shippingAddress ?? null;
+  const payment = paymentSummary ?? order?.paymentSummary ?? null;
 
-  const paymentString = () => {
-    if (!confirmationToken?.payment_method_preview.card) return "";
-    const { card } = confirmationToken.payment_method_preview;
-    return `${card.brand.toUpperCase()}, **** **** **** ${card.last4}, Exp: ${card.exp_month}/${card.exp_year}`;
-  };
+  if (items.length === 0) {
+    return <Typography mt={4}>Your basket is empty</Typography>;
+  }
 
   return (
-    <div>
-      <Box mt={4} width="100%">
-        <Typography variant="h6" fontWeight="bold">
-          Billing and delivery information
+    <Box mt={4} width="100%">
+      <Typography variant="h6" fontWeight="bold">
+        {title}
+      </Typography>
+
+      <dl>
+        <Typography component="dt" fontWeight="medium">
+          Shipping Address
         </Typography>
-        <dl>
-          <Typography component="dt" fontWeight="medium">
-            Shipping Address
-          </Typography>
-          <Typography component="dd" mt={1} color="textSecondary">
-            {addressString()}
-          </Typography>
-          <Typography component="dt" fontWeight="medium">
-            Payment Details
-          </Typography>
-          <Typography component="dd" mt={1} color="textSecondary">
-            {paymentString()}
-          </Typography>
-        </dl>
-      </Box>
-      <Box mt={6} mx="auto">
-        <Divider />
+        <Typography component="dd" mt={1} color="textSecondary">
+          {address
+            ? `${address.name}, ${address.line1}${address.line2 ? `, ${address.line2}` : ""}, ${address.city}, ${address.state}, ${
+                address.postal_code
+              }, ${address.country}`
+            : "Shipping address unavailable"}
+        </Typography>
+
+        <Typography component="dt" fontWeight="medium" mt={2}>
+          Payment Details
+        </Typography>
+        <Typography component="dd" mt={1} color="textSecondary">
+          {payment
+            ? `${payment.brand.toUpperCase()}, **** **** **** ${payment.last4}, Exp: ${payment.exp_month}/${payment.exp_year}`
+            : "Payment info unavailable"}
+        </Typography>
+      </dl>
+
+      <Box mt={4}>
         <TableContainer>
           <Table>
             <TableBody>
-              {basket?.items.map((item) => (
-                <TableRow key={item.productId} sx={{ borderBottom: "1px solid rgba(224,224,1" }}>
-                  <TableCell sx={{ py: 4 }}>
+              {items.map((item) => (
+                <TableRow key={item.productId} sx={{ borderBottom: "1px solid rgba(224,224,224,1)" }}>
+                  <TableCell sx={{ py: 3 }}>
                     <Box display="flex" gap={3} alignItems="center">
-                      <img src={item.pictureURL} alt={item.name} style={{ width: 40, height: 40 }} />
+                      <img src={item.pictureURL} alt={item.name} style={{ width: 40, height: 40, objectFit: "cover" }} />
                       <Typography>{item.name}</Typography>
                     </Box>
                   </TableCell>
-                  <TableCell align="center" sx={{ p: 4 }}>
+                  <TableCell align="center" sx={{ p: 3 }}>
                     x {item.quantity}
                   </TableCell>
-                  <TableCell align="right" sx={{ p: 4 }}>
-                    {currencyFormat(item.price)}
+                  <TableCell align="right" sx={{ p: 3 }}>
+                    {currencyFormat(item.price * item.quantity)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -68,6 +86,6 @@ export default function Review({ confirmationToken }: Props) {
           </Table>
         </TableContainer>
       </Box>
-    </div>
+    </Box>
   );
 }

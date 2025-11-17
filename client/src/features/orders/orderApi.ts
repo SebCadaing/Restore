@@ -16,6 +16,12 @@ export const orderApi = createApi({
         url: `orders/${id}`,
       }),
     }),
+    fetchOrderByPaymentIntent: builder.query<Order, string>({
+      query: (paymentIntentId) => ({
+        url: `orders/by-intent/${paymentIntentId}`,
+      }),
+    }),
+
     createOrder: builder.mutation<Order, CreateOrder>({
       query: (order) => ({
         url: "orders",
@@ -30,4 +36,4 @@ export const orderApi = createApi({
   }),
 });
 
-export const { useFetchOrderDetailsQuery, useFetchOrdersQuery, useCreateOrderMutation } = orderApi;
+export const { useFetchOrderDetailsQuery, useFetchOrdersQuery, useCreateOrderMutation, useFetchOrderByPaymentIntentQuery } = orderApi;

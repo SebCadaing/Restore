@@ -1,15 +1,20 @@
+using API.Extensions;
+
 namespace API.Entities;
 
 public class Basket
 {
     public int Id { get; set; }
-    public required string BasketId { get; set; }
 
-    public List<BasketItem> Items { get; set; } = [];
+    public List<BasketItem> Items { get; set; } = new();
     public string? ClientSecret { get; set; }
     public string? PaymentIntentId { get; set; }
     public AppCoupon? Coupon { get; set; }
+    public required string UserId { get; set; }
+    public User? User { get; set; }
 
+
+    public bool IsActive { get; set; } = true;
 
     public void AddItem(Product product, int quantity)
     {
@@ -31,9 +36,11 @@ public class Basket
             existingItem.Quantity += quantity;
         }
     }
+
     public void RemoveItem(int productId, int quantity)
     {
-        if (quantity <= 0) throw new ArgumentException("Quantity should greater than Zero", nameof(quantity));
+        if (quantity <= 0) throw new ArgumentException("Quantity should be greater than zero", nameof(quantity));
+
         var item = FindItem(productId);
         if (item == null) return;
 

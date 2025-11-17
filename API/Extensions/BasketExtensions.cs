@@ -7,31 +7,29 @@ namespace API.Extensions;
 
 public static class BasketExtensions
 {
-    public static BasketDTO ToDto(this Basket basket)//baset.ToDto()
+    public static BasketDTO ToDto(this Basket basket)
+{
+    return new BasketDTO
     {
-        return new BasketDTO
+        ClientSecret = basket.ClientSecret,
+        PaymentIntentId = basket.PaymentIntentId,
+        Coupon = basket.Coupon,
+        Items = basket.Items.Select(x => new BasketItemDto
         {
-            BasketId = basket.BasketId,
-            ClientSecret = basket.ClientSecret,
-            PaymentIntentId = basket.PaymentIntentId,
-            Coupon = basket.Coupon,
-            Items = basket.Items.Select(x => new BasketItemDto
-            {
-                ProductId = x.ProductId,
-                Name = x.Product.Name,
-                Price = x.Product.Price,
-                Brand = x.Product.Brand,
-                Type = x.Product.Type,
-                PictureURL = x.Product.PictureURL,
-                Quantity = x.Quantity,
-            }).ToList()
-
-        };
-    }
-    public static async Task<Basket> GetBasketWithItems( this IQueryable<Basket> query, string? basketId)
+            ProductId = x.ProductId,
+            Name = x.Product.Name,
+            Price = x.Product.Price,
+            Brand = x.Product.Brand,
+            Type = x.Product.Type,
+            PictureURL = x.Product.PictureURL,
+            Quantity = x.Quantity
+        }).ToList()
+    };
+}
+    public static async Task<Basket> GetBasketWithItems( this IQueryable<Basket> query, string userId)
     {
         
-        return await query.Include(x => x.Items).ThenInclude(x => x.Product).FirstOrDefaultAsync(x => x.BasketId == basketId) ??
+        return await query.Include(x => x.Items).ThenInclude(x => x.Product).FirstOrDefaultAsync(x => x.UserId == userId) ??
             throw new Exception("Cannot get basket");
     }
 } 

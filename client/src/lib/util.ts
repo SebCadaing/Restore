@@ -1,5 +1,6 @@
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
-import type { PaymentSummary, ShippingAddress } from "../app/models/Order";
+import type { Order, PaymentSummary, ShippingAddress } from "../app/models/Order";
+import type { Item } from "../app/models/basket";
 
 export function currencyFormat(amount: number) {
   return "$" + (amount / 100).toFixed(2);
@@ -11,11 +12,30 @@ export function filterEmptyValues(values: object) {
   );
 }
 
-export const formatAddressString = (address: ShippingAddress) => {
-  return `${address?.name}, ${address?.line1}, ${address?.city}, ${address?.state}, ${address?.postal_code}, ${address?.country}`;
+export const formatAddressString = (address?: ShippingAddress) => {
+  if (!address) return "Address unavailable";
+
+  return `${address.name ?? ""}, ${address.line1 ?? ""}, ${address.city ?? ""}, ${address.state ?? ""}, ${address.postal_code ?? ""}, ${
+    address.country ?? ""
+  }`;
 };
-export const formatPaymentString = (card: PaymentSummary) => {
-  return `${card?.brand.toUpperCase()}, **** **** **** ${card?.last4}, Exp: ${card?.exp_month}/${card?.exp_year}`;
+
+export function mapOrderToItems(order: Order): Item[] {
+  return order.orderItems.map((oi) => ({
+    productId: oi.productId,
+    name: oi.name,
+    type: "",
+    price: oi.price,
+    pictureURL: oi.pictureUrl,
+    brand: "",
+    quantity: oi.quantity,
+  }));
+}
+
+export const formatPaymentString = (card?: PaymentSummary) => {
+  if (!card) return "Payment info unavailable";
+
+  return `${card.brand ?? "Unknown"}, **** **** **** ${card.last4 ?? "XXXX"}, Exp: ${card.exp_month ?? "XX"}/${card.exp_year ?? "XX"}`;
 };
 
 export function handleApiError<T extends FieldValues>(error: unknown, setError: UseFormSetError<T>, fieldNames: Path<T>[]) {

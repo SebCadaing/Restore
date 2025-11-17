@@ -22,7 +22,7 @@ namespace API.Controllers
             Response.AddPaginationHeader(products.Metadata);
             return products;
         }
-        [HttpGet("{id}")]// api/products/2
+        [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
             var product = await context.Products.FindAsync(id);
