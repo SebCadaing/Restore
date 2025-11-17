@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { counterSlice } from "../../features/contact/counterReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { catalogAPI } from "../../features/catalog/catalogAPI";
 import { uiSlice } from "../layout/uiSlice";
@@ -23,7 +22,6 @@ export const store = configureStore({
     [orderApi.reducerPath]: orderApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
     checkout: checkoutSlice.reducer,
-    counter: counterSlice.reducer,
     account: accountSlice.reducer,
     ui: uiSlice.reducer,
     catalog: catalogSlice.reducer,
