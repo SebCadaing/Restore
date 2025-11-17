@@ -89,17 +89,20 @@ public async Task<ActionResult<BasketDTO>> CreateOrUpdatePaymentIntent()
         await context.SaveChangesAsync();
     }
 
-private async Task HandlePaymentIntentSucceeded(Stripe.PaymentIntent intent)
+private async Task HandlePaymentIntentSucceeded(PaymentIntent intent)
 {
-    var basket = await context.Baskets
-        .Include(b => b.Items)
-        .FirstOrDefaultAsync(b => b.PaymentIntentId == intent.Id);
+    var order = await context.Orders
+        .Include(o => o.OrderItems)
+        .FirstOrDefaultAsync(o => o.PaymentIntentId == intent.Id);
 
-    if (basket == null) return;
+    if (order == null) return;
 
+    order.OrderStatus = OrderStatus.PaymentReceived;
+    order.OrderDate = DateTime.UtcNow;
 
     await context.SaveChangesAsync();
 }
+
 
     private Event ConstructStripeEvent(string json)
     {
