@@ -6,12 +6,38 @@ using API.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 StripeConfiguration.ApiKey = builder.Configuration["StripeSettings:SecretKey"];
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 builder.Configuration.AddEnvironmentVariables();
+
+var key = Encoding.UTF8.GetBytes(builder.Configuration["Token:Key"]!);
+
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(opt =>
+{
+    opt.TokenValidationParameters = new TokenValidationParameters
+    {
+         ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero,
+        NameClaimType = ClaimTypes.Name,   // ✅ Add this
+        RoleClaimType = ClaimTypes.Role
+    };
+});
+
 
 // Add services to the container.
 
@@ -56,5 +82,8 @@ app.MapGroup("api").MapIdentityApi<User>(); //api/login
 app.MapFallbackToController("Index", "Fallback");
 
 await DbInitializer.InitDb(app);
+
+
+
 
 app.Run();

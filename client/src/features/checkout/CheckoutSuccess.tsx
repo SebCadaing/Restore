@@ -1,30 +1,78 @@
-import { Box, Button, Container, Divider, Paper, Typography } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
-import type { Order } from "../../app/models/Order";
+import { useEffect } from "react";
+import { useLocation, Navigate, Link } from "react-router-dom";
+import { Box, Button, CircularProgress, Container, Divider, Paper, Typography } from "@mui/material";
+import { useFetchOrderByPaymentIntentQuery } from "../orders/orderApi";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { useBasket } from "../../lib/hooks/useBasket";
 import { currencyFormat, formatPaymentString, formatAddressString } from "../../lib/util";
+import { format } from "date-fns"; // ✅ import date-fns
+
+type LocationState = { paymentIntentId?: string };
 
 export default function CheckoutSuccess() {
   const { state } = useLocation();
-  const order = state.data as Order;
-  if (!order) return <Typography>Problem Accessing the Order</Typography>;
+  const { paymentIntentId } = (state as LocationState) || {};
+  const { clearBasket } = useBasket();
+
+  const { data: order, isLoading, isError } = useFetchOrderByPaymentIntentQuery(paymentIntentId ?? skipToken);
+
+  useEffect(() => {
+    if (order) {
+      clearBasket();
+    }
+  }, [order, clearBasket]);
+
+  if (!paymentIntentId) {
+    return <Navigate to="/orders" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <Box display="flex" alignItems="center" justifyContent="center" height="50vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError || !order) {
+    return (
+      <Box display="flex" alignItems="center" justifyContent="center" height="50vh">
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Unable to load your order
+          </Typography>
+          <Typography color="textSecondary">Please try again or view your orders.</Typography>
+        </Paper>
+      </Box>
+    );
+  }
 
   return (
     <Container maxWidth="md">
       <>
         <Typography variant="h4" gutterBottom fontWeight="bold">
-          Thank for your Order
+          Thank you for your Order
         </Typography>
         <Typography variant="body1" color="textSecondary" gutterBottom>
           Your order <strong>#{order.id}</strong>
         </Typography>
 
-        <Paper elevation={1} sx={{ p: 2, mb: 2, display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <Paper
+          elevation={1}
+          sx={{
+            p: 2,
+            mb: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
           <Box display="flex" justifyContent="space-between">
             <Typography variant="body2" color="textSecondary">
               Order Date
             </Typography>
             <Typography variant="body2" fontWeight="bold">
-              {order.orderDate}
+              {format(new Date(order.orderDate), "dd MMM yyyy")}
             </Typography>
           </Box>
           <Divider />
@@ -55,9 +103,10 @@ export default function CheckoutSuccess() {
             </Typography>
           </Box>
         </Paper>
+
         <Box display="flex" justifyContent="flex-start" gap={2}>
           <Button variant="contained" color="primary" component={Link} to={`/orders/${order.id}`}>
-            View you order
+            View your order
           </Button>
           <Button component={Link} to="/catalog" variant="outlined" color="primary">
             Continue Shopping

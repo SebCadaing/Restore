@@ -10,6 +10,8 @@ import { accountApi } from "../../features/account/accountApi";
 import { checkoutApi } from "../../features/checkout/checkoutApi";
 import { orderApi } from "../../features/orders/orderApi";
 import { adminApi } from "../../features/admin/adminApi";
+import { accountSlice } from "../../features/account/accountSlice";
+import { checkoutSlice } from "../../features/checkout/checkoutSlice";
 
 export const store = configureStore({
   reducer: {
@@ -20,7 +22,9 @@ export const store = configureStore({
     [checkoutApi.reducerPath]: checkoutApi.reducer,
     [orderApi.reducerPath]: orderApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
+    checkout: checkoutSlice.reducer,
     counter: counterSlice.reducer,
+    account: accountSlice.reducer,
     ui: uiSlice.reducer,
     catalog: catalogSlice.reducer,
   },

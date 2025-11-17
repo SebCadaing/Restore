@@ -6,13 +6,21 @@ import { router } from "../routes/Routes";
 const customBaseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_URL,
   credentials: "include",
+  prepareHeaders: (headers) => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      const token = JSON.parse(user).token;
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
 });
+
 type ErrorResponse = string | { title: string } | { errors: string[] };
 
 const sleep = () => new Promise((resolve) => setTimeout(resolve, 1000));
 
 export const baseQueryWithErrorHandling = async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: object) => {
-  //start loading
   api.dispatch(startLoading());
   if (import.meta.env.DEV) await sleep();
   const result = await customBaseQuery(args, api, extraOptions);
@@ -29,8 +37,9 @@ export const baseQueryWithErrorHandling = async (args: string | FetchArgs, api: 
         } else toast.error(responseData.title);
         break;
       case 401:
-        if (typeof responseData === "object" && "title" in responseData) toast.error(responseData.title);
+        toast.error("Unauthorized – please login");
         break;
+
       case 403:
         if (typeof responseData === "object") toast.error("403 Forbidden");
         break;

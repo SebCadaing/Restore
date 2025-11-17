@@ -1,49 +1,66 @@
+using API.Data;
 using API.Entities;
 using Stripe;
 
 namespace API.Services;
 
-public class PaymentService(IConfiguration config, DiscountService discountService)
+public class PaymentService(StoreContext context, IConfiguration config, DiscountService discountService)
 {
-    public async Task<PaymentIntent> CreateOrUpdatePaymentIntent(Basket basket, bool removeDiscount = false)
+    public async Task<PaymentIntent?> CreateOrUpdatePaymentIntent(Basket basket, bool removeCoupon = false)
     {
         StripeConfiguration.ApiKey = config["StripeSettings:SecretKey"];
 
-        var service = new PaymentIntentService();
+        var subtotal = basket.Items.Sum(i => i.Quantity * i.Product.Price);
+        var deliveryFee = subtotal > 1000 ? 0 : 500;
 
-        var intent = new PaymentIntent();
-        long subtotal = basket.Items.Sum(x => x.Quantity * x.Product.Price);
-        long deliveryFee = subtotal > 10000 ? 0 : 500;
         long discount = 0;
-
-        if (basket.Coupon != null)
+        if (basket.Coupon != null && !removeCoupon)
         {
-            discount = await discountService.CalculateDiscountFromAmount(basket.Coupon, subtotal, removeDiscount);
+            discount = await discountService.CalculateDiscountFromAmount(basket.Coupon, subtotal);
         }
 
-        var totalAmount = subtotal - discount + deliveryFee;
+        var amount = subtotal + deliveryFee - discount;
 
+        var service = new PaymentIntentService();
+        PaymentIntent intent;
 
         if (string.IsNullOrEmpty(basket.PaymentIntentId))
         {
-            var options = new PaymentIntentCreateOptions
+            var createOptions = new PaymentIntentCreateOptions
             {
-                Amount = totalAmount,
+                Amount = amount,
                 Currency = "usd",
-                PaymentMethodTypes = ["card"]
+                PaymentMethodTypes = new List<string> { "card" },
+                Metadata = new Dictionary<string, string>
+                {
+                    { "basketId", basket.Id.ToString() },
+                    { "userId", basket.UserId }
+                }
             };
-            intent = await service.CreateAsync(options);
+
+            intent = await service.CreateAsync(createOptions);
+            basket.PaymentIntentId = intent.Id;
+            basket.ClientSecret = intent.ClientSecret;
         }
         else
         {
-            var options = new PaymentIntentUpdateOptions
+            var updateOptions = new PaymentIntentUpdateOptions
             {
-                Amount = totalAmount
+                Amount = amount,
+                Metadata = new Dictionary<string, string>
+                {
+                    { "basketId", basket.Id.ToString() },
+                    { "userId", basket.UserId }
+                }
             };
-          intent =   await service.UpdateAsync(basket.PaymentIntentId, options);
+
+            intent = await service.UpdateAsync(basket.PaymentIntentId, updateOptions);
+            basket.ClientSecret = intent.ClientSecret ?? basket.ClientSecret;
         }
 
-        return intent;
+        context.Baskets.Update(basket);
+        await context.SaveChangesAsync();
 
+        return intent;
     }
 }

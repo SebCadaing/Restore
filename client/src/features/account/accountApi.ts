@@ -4,24 +4,25 @@ import type { Address, User } from "../../app/models/user";
 import type { LoginSchema } from "../../lib/schemas/loginSchema";
 import { router } from "../../app/routes/Routes";
 import { toast } from "react-toastify";
+import { logout, setUser } from "./accountSlice";
+import { basketApi } from "../basket/basketApi";
 
 export const accountApi = createApi({
   reducerPath: "accountApi",
   baseQuery: baseQueryWithErrorHandling,
   tagTypes: ["UserInfo"],
   endpoints: (builder) => ({
-    login: builder.mutation<void, LoginSchema>({
-      query: (creds) => {
-        return {
-          url: "login?useCookies=true",
-          method: "POST",
-          body: creds,
-        };
-      },
-      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+    login: builder.mutation<User, LoginSchema>({
+      query: (creds) => ({
+        url: "account/login",
+        method: "POST",
+        body: creds,
+      }),
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
-          await queryFulfilled;
-          dispatch(accountApi.util.invalidateTags(["UserInfo"]));
+          const { data } = await queryFulfilled;
+          dispatch(setUser(data));
+          dispatch(basketApi.util.invalidateTags(["Basket"]));
         } catch (error) {
           console.log(error);
         }
@@ -56,9 +57,14 @@ export const accountApi = createApi({
         method: "POST",
       }),
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
-        await queryFulfilled;
-        dispatch(accountApi.util.invalidateTags(["UserInfo"]));
-        router.navigate("/");
+        try {
+          await queryFulfilled;
+        } finally {
+          dispatch(logout());
+          dispatch(basketApi.endpoints.cleaBasket.initiate());
+          dispatch(accountApi.util.resetApiState());
+          router.navigate("/");
+        }
       },
     }),
     fetchAddress: builder.query<Address, void>({

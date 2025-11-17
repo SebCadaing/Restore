@@ -2,7 +2,6 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithErrorHandling } from "../../app/api/baseAPI";
 import { Item, type Basket } from "../../app/models/basket";
 import type { Product } from "../../app/models/product";
-import Cookies from "js-cookie";
 
 function isBasketItem(product: Product | Item): product is Item {
   return (product as Item).quantity !== undefined;
@@ -17,6 +16,7 @@ export const basketApi = createApi({
       query: () => "basket",
       providesTags: ["Basket"],
     }),
+
     addBasketItem: builder.mutation<Basket, { product: Product | Item; quantity: number }>({
       query: ({ product, quantity }) => {
         const productId = isBasketItem(product) ? product.productId : product.id;
@@ -26,27 +26,26 @@ export const basketApi = createApi({
         };
       },
       onQueryStarted: async ({ product, quantity }, { dispatch, queryFulfilled }) => {
-        let isNewBasket = false;
         const patchResult = dispatch(
           basketApi.util.updateQueryData("fetchBasket", undefined, (draft) => {
+            if (!draft) return;
             const productId = isBasketItem(product) ? product.productId : product.id;
-            if (!draft?.basketId) isNewBasket = true;
-            if (!isNewBasket) {
-              const existingItem = draft.items.find((item) => item.productId === productId);
-              if (existingItem) existingItem.quantity += quantity;
-              else draft.items.push(isBasketItem(product) ? product : { ...product, productId: product.id, quantity });
-            }
+            const existingItem = draft.items.find((item) => item.productId === productId);
+            if (existingItem) existingItem.quantity += quantity;
+            else draft.items.push(isBasketItem(product) ? product : { ...product, productId: product.id, quantity });
           })
         );
+
         try {
           await queryFulfilled;
-          if (isNewBasket) dispatch(basketApi.util.invalidateTags(["Basket"]));
+          dispatch(basketApi.util.invalidateTags(["Basket"]));
         } catch (error) {
           console.log(error);
           patchResult.undo();
         }
       },
     }),
+
     removeBasketItem: builder.mutation<void, { productId: number; quantity: number }>({
       query: ({ productId, quantity }) => ({
         url: `basket?productId=${productId}&quantity=${quantity}`,
@@ -66,24 +65,28 @@ export const basketApi = createApi({
         );
         try {
           await queryFulfilled;
+          dispatch(basketApi.util.invalidateTags(["Basket"]));
         } catch (error) {
           console.log(error);
           patchResult.undo();
         }
       },
     }),
+
     cleaBasket: builder.mutation<void, void>({
       queryFn: () => ({ data: undefined }),
       onQueryStarted: async (_, { dispatch }) => {
         dispatch(
           basketApi.util.updateQueryData("fetchBasket", undefined, (draft) => {
             draft.items = [];
-            draft.basketId = "";
+            draft.coupon = null;
+            draft.clientSecret = undefined;
+            draft.paymentIntentId = undefined;
           })
         );
-        Cookies.remove("basketId");
       },
     }),
+
     addCoupon: builder.mutation<Basket, string>({
       query: (code: string) => ({
         url: `basket/${code}`,
@@ -98,6 +101,7 @@ export const basketApi = createApi({
         );
       },
     }),
+
     removeCoupon: builder.mutation<Basket, void>({
       query: () => ({
         url: "basket/remove-coupon",

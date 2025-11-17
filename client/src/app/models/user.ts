@@ -1,6 +1,7 @@
 export type User = {
   email: string;
   roles: string[];
+  token: string | null;
 };
 
 export type Address = {

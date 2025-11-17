@@ -22,6 +22,7 @@ public class StoreContext(DbContextOptions options) : IdentityDbContext<User>(op
             new IdentityRole {Id="f6904be3-b419-499d-a364-e2ce5101d8ed", Name = "Member", NormalizedName = "MEMBER" },
             new IdentityRole {Id ="4433e4ac-0798-4dad-910b-899e9632125a", Name = "Admin", NormalizedName = "ADMIN" }
         );
+            builder.Entity<Basket>().OwnsOne(b => b.Coupon);
     }
     
 }
