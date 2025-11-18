@@ -112,11 +112,6 @@ public class OrdersController(StoreContext context, DiscountService discountServ
         if (!result) return BadRequest(new { error = "Problem creating order" });
 
 
-        basket.IsActive = false;
-        basket.ClientSecret = null;
-        basket.PaymentIntentId = null;
-        basket.Coupon = null;
-        await context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetOrderDetails), new { id = order.Id }, order.ToDto());
     }
